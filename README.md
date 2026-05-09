@@ -63,7 +63,9 @@ frontend/src/
 ## AI Prompting Journal
 
 **Student:** Adreen Nyawira
+
 **Capstone:** Food Delivery App (Bitcoin Development)
+
 **AI Tool:** Claude.ai
 
 ### Prompt #1 — Conceptual Understanding
