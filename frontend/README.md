@@ -1,16 +1,83 @@
-# React + Vite
+# BitBite ⚡
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+BitBite is a modern food delivery platform built for fast, affordable, and transparent food ordering.  
+The platform connects customers, restaurants, and delivery riders through a real-time delivery system with integrated digital payments.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+#  Features
 
-## React Compiler
+## Customer Features
+- Browse restaurants and menus
+- Place food orders
+- Real-time order tracking
+- Secure digital payments
+- Order history
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Restaurant Features
+- Manage menus
+- Accept or reject orders
+- Track incoming deliveries
+- View sales activity
 
-## Expanding the ESLint configuration
+## Rider Features
+- Receive delivery requests
+- Accept delivery tasks
+- Track pickup and drop-off locations
+- Delivery status updates
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Platform Features
+- Real-time order updates
+- Low-cost payment integration
+- Modular backend architecture
+- REST API support
+- Scalable project structure
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+- React
+- Vite
+- Tailwind CSS
+- JavaScript
+
+## Backend
+- Flask
+- SQLAlchemy
+- Alembic Migrations
+- PostgreSQL
+- Python
+
+## Payments
+- Bitcoin / Lightning-ready payment integration
+
+---
+
+#  Project Structure
+
+```bash
+BIT-BITE/
+│
+├── backend/
+│   ├── app/
+│   ├── migrations/
+│   ├── venv/
+│   ├── requirements.txt
+│   ├── run.py
+│   ├── seed.py
+│   └── README.md
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── dist/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── README.md
+│
+├── package.json
+├── QUICKSTART.md
+├── SETUP.md
+└── README.md

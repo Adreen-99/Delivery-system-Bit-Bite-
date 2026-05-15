@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: bit-bite-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bit-bite-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://bit-bite.onrender.com
+      - key: LNBITS_URL
+        value: https://demo.lnbits.com
+      - key: LNBITS_ADMIN_KEY
+        sync: false
+      - key: LNBITS_INVOICE_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /api/health
+
+  - type: static
+    name: bit-bite
+    runtime: static
+    region: oregon
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://bit-bite-api.onrender.com/api
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: bit-bite-db
+    region: oregon
+    plan: free
+    databaseName: bitbite
+    user: bitbite

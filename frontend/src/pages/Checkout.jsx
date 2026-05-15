@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useUser } from '../context/UserContext'
-import { createOrder } from '../services/api'
+import { API_URL } from '../services/api'
 
 export default function Checkout() {
   const navigate = useNavigate()
@@ -34,13 +34,18 @@ export default function Checkout() {
         delivery_address: deliveryAddress
       }
 
-      const response = await createOrder(orderData)
-      const { order, payment } = response.data
+      const res = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      })
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to create order')
+      const { order, payment } = await res.json()
 
       clearCart()
       navigate(`/order/${order.id}`, { state: { order, payment } })
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create order. Please try again.')
+      setError(err.message || 'Failed to create order. Please try again.')
     } finally {
       setLoading(false)
     }

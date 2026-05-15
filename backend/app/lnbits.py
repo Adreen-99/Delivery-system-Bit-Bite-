@@ -1,33 +1,28 @@
 import requests
 import hashlib
 import hmac
-import json
-from flask import current_app, request, jsonify
+from flask import current_app
 
 class LNbitsClient:
-    """Client for interacting with LNbits API"""
-
     def __init__(self, base_url, admin_key, invoice_key):
         self.base_url = base_url.rstrip('/')
         self.admin_key = admin_key
         self.invoice_key = invoice_key
         self.headers_admin = {'X-Api-Key': admin_key, 'Content-Type': 'application/json'}
         self.headers_invoice = {'X-Api-Key': invoice_key, 'Content-Type': 'application/json'}
+        self.timeout = 15
 
-    def create_wallet(self, name, user_id):
-        """Create a new Lightning wallet"""
-        url = f"{self.base_url}/api/v1/wallets"
-        data = {
-            'name': name,
-            'user': user_id,
-            'adminkey': self.admin_key
-        }
-        resp = requests.post(url, json=data, headers=self.headers_admin)
+    def _request(self, method, url, **kwargs):
+        kwargs.setdefault('timeout', self.timeout)
+        resp = requests.request(method, url, **kwargs)
         resp.raise_for_status()
         return resp.json()
 
+    def create_wallet(self, name, user_id):
+        url = f"{self.base_url}/api/v1/wallets"
+        return self._request('POST', url, json={'name': name, 'user': user_id, 'adminkey': self.admin_key}, headers=self.headers_admin)
+
     def create_invoice(self, wallet_id, amount_sats, memo="", expiry=3600):
-        """Create a Lightning invoice (BOLT11)"""
         url = f"{self.base_url}/api/v1/payments"
         data = {
             'out': False,
@@ -37,40 +32,37 @@ class LNbitsClient:
             'wallet_id': wallet_id,
             'expiry': expiry
         }
-        resp = requests.post(url, json=data, headers=self.headers_invoice)
+        resp = requests.post(url, json=data, headers=self.headers_invoice, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
     def pay_invoice(self, wallet_id, payment_request):
-        """Pay a Lightning invoice"""
         url = f"{self.base_url}/api/v1/payments"
-        data = {
-            'out': True,
-            'bolt11': payment_request,
-            'wallet_id': wallet_id
-        }
-        resp = requests.post(url, json=data, headers=self.headers_invoice)
+        data = {'out': True, 'bolt11': payment_request, 'wallet_id': wallet_id}
+        resp = requests.post(url, json=data, headers=self.headers_invoice, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
     def check_invoice(self, wallet_id, payment_hash):
-        """Check if an invoice has been paid"""
         url = f"{self.base_url}/api/v1/payments/{payment_hash}"
-        resp = requests.get(url, headers=self.headers_invoice)
-        if resp.status_code == 404:
-            return None
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            resp = requests.get(url, headers=self.headers_invoice, timeout=self.timeout)
+            if resp.status_code == 404:
+                return None
+            resp.raise_for_status()
+            return resp.json()
+        except requests.HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                return None
+            raise
 
     def get_wallet_balance(self, wallet_id):
-        """Get wallet balance"""
         url = f"{self.base_url}/api/v1/wallet/{wallet_id}"
-        resp = requests.get(url, headers=self.headers_invoice)
+        resp = requests.get(url, headers=self.headers_invoice, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
 def get_lnbits_client():
-    """Get configured LNbits client from current app config"""
     config = current_app.config
     return LNbitsClient(
         base_url=config.get('LNBITS_URL', 'http://localhost:3000'),
@@ -79,7 +71,6 @@ def get_lnbits_client():
     )
 
 def verify_lnbits_webhook(signature, payload, secret):
-    """Verify LNbits webhook signature"""
     expected = hmac.new(
         secret.encode(),
         payload,

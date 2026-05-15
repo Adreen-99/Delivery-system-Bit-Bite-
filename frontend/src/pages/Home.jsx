@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getRestaurants } from '../services/api'
+import { API_URL } from '../services/api'
 import { useUser } from '../context/UserContext'
 import Logo from '../components/Logo'
 
@@ -10,8 +10,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getRestaurants()
-      .then(res => setRestaurants(res.data))
+    fetch(`${API_URL}/restaurants`)
+      .then(res => res.json())
+      .then(data => setRestaurants(data))
       .catch(err => console.error('Failed to load restaurants:', err))
       .finally(() => setLoading(false))
   }, [])

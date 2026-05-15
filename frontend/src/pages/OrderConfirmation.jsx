@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { QRCodeSVG } from "qrcode.react"
-import { getOrder } from '../services/api'
+import { API_URL } from '../services/api'
 
 export default function OrderConfirmation() {
   const { orderId } = useParams()
@@ -12,9 +12,10 @@ export default function OrderConfirmation() {
 
   const fetchOrder = async () => {
     try {
-      const res = await getOrder(orderId)
-      setOrder(res.data)
-      setPaymentStatus(res.data.payment?.status || 'pending')
+      const res = await fetch(`${API_URL}/orders/${orderId}`)
+      const data = await res.json()
+      setOrder(data)
+      setPaymentStatus(data.payment?.status || 'pending')
     } catch (err) {
       console.error('Failed to load order:', err)
     } finally {
@@ -25,10 +26,11 @@ export default function OrderConfirmation() {
   const checkPayment = async () => {
     if (!order?.payment) return
     try {
-      const res = await getOrder(orderId)
-      setOrder(res.data)
-      setPaymentStatus(res.data.payment.status)
-      if (res.data.payment.status === 'paid') setPolling(false)
+      const res = await fetch(`${API_URL}/orders/${orderId}`)
+      const data = await res.json()
+      setOrder(data)
+      setPaymentStatus(data.payment.status)
+      if (data.payment.status === 'paid') setPolling(false)
     } catch (err) {
       console.error('Payment check failed:', err)
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getOrder, getDeliveryStatus } from '../services/api'
+import { API_URL } from '../services/api'
 
 export default function TrackOrder() {
   const { orderId } = useParams()
@@ -11,11 +11,11 @@ export default function TrackOrder() {
   const fetchData = async () => {
     try {
       const [orderRes, deliveryRes] = await Promise.all([
-        getOrder(orderId),
-        getDeliveryStatus(orderId)
+        fetch(`${API_URL}/orders/${orderId}`).then(r => r.json()),
+        fetch(`${API_URL}/delivery/${orderId}`).then(r => r.json())
       ])
-      setOrder(orderRes.data)
-      setDelivery(deliveryRes.data)
+      setOrder(orderRes)
+      setDelivery(deliveryRes)
     } catch (err) {
       console.error('Failed to load order:', err)
     } finally {

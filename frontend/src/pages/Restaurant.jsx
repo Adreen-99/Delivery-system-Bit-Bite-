@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getRestaurant, getMenu } from '../services/api'
+import { API_URL } from '../services/api'
 import { useCart } from '../context/CartContext'
 
 export default function Restaurant() {
@@ -11,10 +11,13 @@ export default function Restaurant() {
   const { addItem, items, getTotal } = useCart()
 
   useEffect(() => {
-    Promise.all([getRestaurant(id), getMenu(id)])
-      .then(([restRes, menuRes]) => {
-        setRestaurant(restRes.data)
-        setMenuItems(menuRes.data)
+    Promise.all([
+      fetch(`${API_URL}/restaurants/${id}`).then(r => r.json()),
+      fetch(`${API_URL}/restaurants/${id}/menu`).then(r => r.json())
+    ])
+      .then(([rest, menu]) => {
+        setRestaurant(rest)
+        setMenuItems(menu)
       })
       .catch(err => console.error('Failed to load:', err))
       .finally(() => setLoading(false))

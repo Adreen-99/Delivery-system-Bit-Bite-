@@ -9,12 +9,16 @@ api_bp = Blueprint('api', __name__)
 
 def generate_token(user_id):
     s = Serializer(current_app.config['SECRET_KEY'], salt='auth')
-    return s.dumps({'user_id': user_id})
+    token = s.dumps({'user_id': user_id})
+    return token
+
+def get_token_expiry():
+    return 86400  # 24 hours in seconds
 
 def verify_token(token):
     s = Serializer(current_app.config['SECRET_KEY'], salt='auth')
     try:
-        data = s.loads(token)
+        data = s.loads(token, max_age=get_token_expiry())
         return User.query.get(data['user_id'])
     except Exception:
         return None

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { loginUser, registerUser, getMe } from '../services/api'
+import { API_URL } from '../services/api'
 
 const UserContext = createContext()
 
@@ -10,8 +10,11 @@ export function UserProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem('bitbite-token')
     if (token) {
-      getMe()
-        .then(res => setUser(res.data))
+      fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(data => setUser(data))
         .catch(() => localStorage.removeItem('bitbite-token'))
         .finally(() => setLoading(false))
     } else {
@@ -20,16 +23,26 @@ export function UserProvider({ children }) {
   }, [])
 
   const login = async (email, password) => {
-    const res = await loginUser({ email, password })
-    const { user, token } = res.data
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+    if (!res.ok) throw new Error((await res.json()).error)
+    const { user, token } = await res.json()
     localStorage.setItem('bitbite-token', token)
     setUser(user)
     return user
   }
 
   const register = async (name, email, password) => {
-    const res = await registerUser({ name, email, password })
-    const { user, token } = res.data
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    })
+    if (!res.ok) throw new Error((await res.json()).error)
+    const { user, token } = await res.json()
     localStorage.setItem('bitbite-token', token)
     setUser(user)
     return user
