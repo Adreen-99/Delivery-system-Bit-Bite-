@@ -22,7 +22,7 @@ services:
       - key: LNBITS_INVOICE_KEY
         sync: false
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.9
     healthCheckPath: /api/health
 
 databases:
