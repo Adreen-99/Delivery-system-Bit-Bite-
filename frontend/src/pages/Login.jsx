@@ -62,7 +62,7 @@ export default function Login() {
       addToast('Welcome back!', 'success')
       navigate('/')
     } catch (err) {
-      const msg = err.response?.data?.error || 'Login failed. Please try again.'
+      const msg = err.message || 'Login failed. Please try again.'
       setErrors({ form: msg })
       addToast(msg, 'error')
     } finally {

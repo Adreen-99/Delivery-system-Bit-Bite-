@@ -52,7 +52,7 @@ export default function Signup() {
       addToast('Account created successfully!', 'success')
       navigate('/')
     } catch (err) {
-      const msg = err.response?.data?.error || 'Registration failed'
+      const msg = err.message || 'Registration failed'
       setErrors({ form: msg })
       addToast(msg, 'error')
     } finally {
