@@ -4,7 +4,8 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt
+    pythonVersion: "3.11.9"
+    buildCommand: pip install -r backend/requirements.txt
     startCommand: cd backend && gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: DATABASE_URL
@@ -21,8 +22,6 @@ services:
         sync: false
       - key: LNBITS_INVOICE_KEY
         sync: false
-      - key: PYTHON_VERSION
-        value: 3.11.9
     healthCheckPath: /api/health
 
 databases:
