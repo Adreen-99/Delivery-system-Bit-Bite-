@@ -6,7 +6,7 @@ services:
     plan: free
     pythonVersion: "3.11.9"
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && flask --app run:app db upgrade && gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: cd backend && python manage_db.py && gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -21,6 +21,8 @@ services:
       - key: LNBITS_ADMIN_KEY
         sync: false
       - key: LNBITS_INVOICE_KEY
+        sync: false
+      - key: LNBITS_WEBHOOK_SECRET
         sync: false
     healthCheckPath: /api/health
 
