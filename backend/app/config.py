@@ -3,16 +3,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY')
-    if not SECRET_KEY:
-        raise ValueError('SECRET_KEY must be set in environment')
+def normalize_database_url(database_url):
+    if database_url.startswith('postgres://'):
+        return database_url.replace('postgres://', 'postgresql://', 1)
+    return database_url
 
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    if not SQLALCHEMY_DATABASE_URI:
-        raise ValueError('DATABASE_URL must be set in environment')
-    if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
-        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
+class Config:
+    SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-me')
+
+    SQLALCHEMY_DATABASE_URI = normalize_database_url(
+        os.getenv('DATABASE_URL', 'sqlite:///dev.db')
+    )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

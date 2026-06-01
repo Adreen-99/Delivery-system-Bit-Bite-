@@ -22,7 +22,7 @@ class LNbitsClient:
         url = f"{self.base_url}/api/v1/wallets"
         return self._request('POST', url, json={'name': name, 'user': user_id, 'adminkey': self.admin_key}, headers=self.headers_admin)
 
-    def create_invoice(self, wallet_id, amount_sats, memo="", expiry=3600):
+    def create_invoice(self, wallet_id, amount_sats, memo="", expiry=3600, invoice_key=None):
         url = f"{self.base_url}/api/v1/payments"
         data = {
             'out': False,
@@ -32,21 +32,24 @@ class LNbitsClient:
             'wallet_id': wallet_id,
             'expiry': expiry
         }
-        resp = requests.post(url, json=data, headers=self.headers_invoice, timeout=self.timeout)
+        headers = {'X-Api-Key': invoice_key or self.invoice_key, 'Content-Type': 'application/json'}
+        resp = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
-    def pay_invoice(self, wallet_id, payment_request):
+    def pay_invoice(self, wallet_id, payment_request, invoice_key=None):
         url = f"{self.base_url}/api/v1/payments"
         data = {'out': True, 'bolt11': payment_request, 'wallet_id': wallet_id}
-        resp = requests.post(url, json=data, headers=self.headers_invoice, timeout=self.timeout)
+        headers = {'X-Api-Key': invoice_key or self.invoice_key, 'Content-Type': 'application/json'}
+        resp = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
-    def check_invoice(self, wallet_id, payment_hash):
+    def check_invoice(self, wallet_id, payment_hash, invoice_key=None):
         url = f"{self.base_url}/api/v1/payments/{payment_hash}"
+        headers = {'X-Api-Key': invoice_key or self.invoice_key, 'Content-Type': 'application/json'}
         try:
-            resp = requests.get(url, headers=self.headers_invoice, timeout=self.timeout)
+            resp = requests.get(url, headers=headers, timeout=self.timeout)
             if resp.status_code == 404:
                 return None
             resp.raise_for_status()
@@ -56,9 +59,10 @@ class LNbitsClient:
                 return None
             raise
 
-    def get_wallet_balance(self, wallet_id):
+    def get_wallet_balance(self, wallet_id, invoice_key=None):
         url = f"{self.base_url}/api/v1/wallet/{wallet_id}"
-        resp = requests.get(url, headers=self.headers_invoice, timeout=self.timeout)
+        headers = {'X-Api-Key': invoice_key or self.invoice_key, 'Content-Type': 'application/json'}
+        resp = requests.get(url, headers=headers, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 

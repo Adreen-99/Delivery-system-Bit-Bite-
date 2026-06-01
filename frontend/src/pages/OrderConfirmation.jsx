@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { QRCodeSVG } from "qrcode.react"
-import { API_URL } from '../services/api'
+import { API_URL, authHeaders } from '../services/api'
 
 export default function OrderConfirmation() {
   const { orderId } = useParams()
@@ -9,10 +9,11 @@ export default function OrderConfirmation() {
   const [loading, setLoading] = useState(true)
   const [paymentStatus, setPaymentStatus] = useState('pending')
   const [polling, setPolling] = useState(false)
+  const paymentHash = order?.payment?.payment_hash
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/orders/${orderId}`)
+      const res = await fetch(`${API_URL}/orders/${orderId}`, { headers: authHeaders() })
       const data = await res.json()
       setOrder(data)
       setPaymentStatus(data.payment?.status || 'pending')
@@ -21,30 +22,30 @@ export default function OrderConfirmation() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [orderId])
 
-  const checkPayment = async () => {
-    if (!order?.payment) return
+  const checkPayment = useCallback(async () => {
+    if (!paymentHash) return
     try {
-      const res = await fetch(`${API_URL}/orders/${orderId}`)
+      const res = await fetch(`${API_URL}/payments/check/${paymentHash}`, { headers: authHeaders() })
       const data = await res.json()
-      setOrder(data)
+      setOrder(data.order)
       setPaymentStatus(data.payment.status)
       if (data.payment.status === 'paid') setPolling(false)
     } catch (err) {
       console.error('Payment check failed:', err)
     }
-  }
+  }, [paymentHash])
 
   useEffect(() => {
     fetchOrder()
-  }, [orderId])
+  }, [fetchOrder])
 
   useEffect(() => {
     if (paymentStatus === 'paid') return
     const interval = setInterval(() => checkPayment(), 5000)
     return () => clearInterval(interval)
-  }, [paymentStatus, orderId])
+  }, [paymentStatus, checkPayment])
 
   const copyInvoice = () => {
     if (order?.payment?.payment_request) {
