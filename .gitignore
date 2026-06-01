@@ -8,10 +8,13 @@ env/
 .env
 .env.local
 .env.*.local
+backend/.env
+frontend/.env.local
 
-# Database
+# Databases
 *.db
 *.sqlite
+backend/instance/
 
 # Logs
 *.log
@@ -40,7 +43,3 @@ __pycache__/
 *.so
 .Python
 *.egg-info/
-
-# Venv
-backend/venv/
-backend/.venv/

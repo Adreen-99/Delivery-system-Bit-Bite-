@@ -13,13 +13,12 @@ BitBite is built as a startup-style MVP that demonstrates how a real-world food 
 #  Backend
 cd backend && python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-python run.py                     # http://localhost:5000
+flask --app run:app db upgrade
+python seed.py                    # optional sample restaurants/menu
+python run.py                     # http://localhost:5001
 
 #  Frontend
 cd frontend && npm install && npm run dev   # http://localhost:5173
-
-# Seed data (optional)
-cd backend && source venv/bin/activate && python seed.py
 ```
 
 ## Structure
@@ -33,7 +32,11 @@ frontend/src/
   services/api.js     → Axios client
 ```
 
-## Config File (`backend/.env`)
+## Config Files
+
+- `backend/.env` configures Flask, PostgreSQL, LNbits, and CORS.
+- `frontend/.env.local` points Vite at the local API: `http://127.0.0.1:5001/api`.
+- If Docker is available, `docker compose up -d postgres` starts a local PostgreSQL database matching `backend/.env`.
 
 
 ## API endpoints

@@ -16,6 +16,7 @@ class User(db.Model):
     phone = db.Column(db.String(20), nullable=True)
     password_hash = db.Column(db.String(256), nullable=True)
     lightning_address = db.Column(db.String(100), nullable=True)
+    role = db.Column(db.String(20), nullable=False, default='customer', server_default='customer')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -28,7 +29,7 @@ class User(db.Model):
     )
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
         if not self.password_hash:
@@ -42,6 +43,7 @@ class User(db.Model):
             'email': self.email,
             'phone': self.phone,
             'lightning_address': self.lightning_address,
+            'role': self.role,
             'created_at': self.created_at.isoformat()
         }
 
@@ -211,6 +213,7 @@ class Payment(db.Model):
         server_default='pending'
     )
     paid_at = db.Column(db.DateTime, nullable=True)
+    expires_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Foreign keys
@@ -224,5 +227,6 @@ class Payment(db.Model):
             'amount_sats': self.amount_sats,
             'status': self.status,
             'paid_at': self.paid_at.isoformat() if self.paid_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'created_at': self.created_at.isoformat()
         }

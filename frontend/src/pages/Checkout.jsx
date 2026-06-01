@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useUser } from '../context/UserContext'
-import { API_URL } from '../services/api'
+import { API_URL, authHeaders } from '../services/api'
 
 export default function Checkout() {
   const navigate = useNavigate()
@@ -25,7 +25,6 @@ export default function Checkout() {
 
     try {
       const orderData = {
-        user_id: user?.id || 1,
         restaurant_id: restaurantId,
         items: items.map(item => ({
           menu_item_id: item.id,
@@ -36,7 +35,7 @@ export default function Checkout() {
 
       const res = await fetch(`${API_URL}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(orderData)
       })
       if (!res.ok) throw new Error((await res.json()).error || 'Failed to create order')
@@ -62,6 +61,23 @@ export default function Checkout() {
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium mt-4 transition-colors"
           >
             Browse Restaurants
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center transition-colors">
+        <div className="text-center px-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Sign in to checkout</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">Orders are tied to your account for payment and tracking.</p>
+          <Link
+            to="/login"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+          >
+            Sign In
           </Link>
         </div>
       </div>

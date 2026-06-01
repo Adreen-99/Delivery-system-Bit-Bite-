@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { API_URL } from '../services/api'
+import { API_URL, authHeaders } from '../services/api'
 
 export default function TrackOrder() {
   const { orderId } = useParams()
@@ -8,11 +8,11 @@ export default function TrackOrder() {
   const [delivery, setDelivery] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [orderRes, deliveryRes] = await Promise.all([
-        fetch(`${API_URL}/orders/${orderId}`).then(r => r.json()),
-        fetch(`${API_URL}/delivery/${orderId}`).then(r => r.json())
+        fetch(`${API_URL}/orders/${orderId}`, { headers: authHeaders() }).then(r => r.json()),
+        fetch(`${API_URL}/delivery/${orderId}`, { headers: authHeaders() }).then(r => r.json())
       ])
       setOrder(orderRes)
       setDelivery(deliveryRes)
@@ -21,11 +21,11 @@ export default function TrackOrder() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [orderId])
 
   useEffect(() => {
     fetchData()
-  }, [orderId])
+  }, [fetchData])
 
   const getStatusIcon = (status) => {
     const icons = { pending: '⏳', confirmed: '✅', preparing: '👨‍🍳', ready: '📦', in_transit: '🚴', delivered: '🏠' }

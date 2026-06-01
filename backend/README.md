@@ -21,24 +21,33 @@ Flask API for Bit-Bite food delivery with Lightning Network payments.
    # Edit .env with your database and LNbits credentials
    ```
 
-4. Initialize database:
+4. Start PostgreSQL:
    ```bash
-   flask --app run:app db init
-   flask --app run:app db migrate -m "Initial migration"
+   # From the project root, if Docker is installed:
+   docker compose up -d postgres
+   ```
+
+5. Initialize/update database:
+   ```bash
    flask --app run:app db upgrade
    ```
 
-5. Start the server:
+6. Seed sample data:
+   ```bash
+   python seed.py
+   ```
+
+7. Start the server:
    ```bash
    python run.py
    ```
 
-The API will be available at `http://localhost:5000/api`
+The API will be available at `http://localhost:5001/api`
 
 ## API Documentation
 
 ### Authentication
-Currently no authentication. Users are identified by ID only.
+Password auth is enabled. Protected endpoints require `Authorization: Bearer <token>`.
 
 ### Restaurant Endpoints
 - `GET /api/restaurants` - List all active restaurants
@@ -46,24 +55,24 @@ Currently no authentication. Users are identified by ID only.
 - `GET /api/restaurants/<id>/menu` - Get menu items
 
 ### User Endpoints
-- `POST /api/users` - Create a user
+- `POST /api/users` - Create a user (admin only)
   ```json
   { "name": "John", "email": "john@example.com", "phone": "...", "lightning_address": "..." }
   ```
 - `GET /api/users/<id>` - Get user details
 
 ### Order Endpoints
-- `POST /api/orders` - Create order (returns Lightning invoice)
-- `GET /api/orders/<id>` - Get order details
-- `GET /api/orders/user/<user_id>` - List user orders
+- `POST /api/orders` - Create order for the authenticated user (returns Lightning invoice)
+- `GET /api/orders/<id>` - Get order details for owner/admin/restaurant users
+- `GET /api/orders/user/<user_id>` - List user orders for owner/admin users
 
 ### Payment Endpoints
-- `GET /api/payments/check/<payment_hash>` - Check if invoice paid
-- `POST /api/payments/webhook` - LNbits webhook (called automatically)
+- `GET /api/payments/check/<payment_hash>` - Check if invoice paid for owner/admin/restaurant users
+- `POST /api/payments/webhook` - LNbits webhook, verified with `LNBITS_WEBHOOK_SECRET` when configured
 
 ### Delivery Endpoints
 - `GET /api/delivery/<order_id>` - Get delivery status
-- `PUT /api/delivery/<order_id>` - Update delivery status
+- `PUT /api/delivery/<order_id>` - Update delivery status (admin/restaurant users only)
 
 ## Sample Order Flow
 
@@ -73,7 +82,6 @@ Currently no authentication. Users are identified by ID only.
 4. User checks out (POST /orders) with:
    ```json
    {
-     "user_id": 1,
      "restaurant_id": 1,
      "items": [{"menu_item_id": 1, "quantity": 2}],
      "delivery_address": "123 Main St"
@@ -82,7 +90,7 @@ Currently no authentication. Users are identified by ID only.
 5. Backend creates Lightning invoice via LNbits
 6. Frontend displays QR code and bolt11 invoice
 7. User pays invoice with any Lightning wallet
-8. Frontend polls payment status or waits for webhook
+8. Frontend polls payment status with the user's token or waits for webhook
 9. Restaurant prepares order, driver picks up
 10. Delivery status updates to "delivered"
 
@@ -107,7 +115,7 @@ Restaurants must have their own LNbits wallets configured. Platform fees are ded
 
 ## Development
 
-Flask-Migrate is used for database migrations.
+Flask-Migrate is used for database migrations. Do not rely on `db.create_all()` for development or deployment.
 
 ```bash
 # After modifying models

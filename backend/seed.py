@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import create_app
 from app.extensions import db
-from app.models import Restaurant, MenuItem
+from app.models import Restaurant, MenuItem, User
 from datetime import datetime
 
 app = create_app()
@@ -19,10 +19,9 @@ app = create_app()
 def seed_database():
     """Create sample restaurants and menu items"""
     with app.app_context():
-        db.create_all()
-
         if Restaurant.query.count() > 0:
-            print("Database already seeded. Skipping.")
+            print("Restaurant data already seeded. Checking users...")
+            seed_users()
             return
 
         restaurants = [
@@ -106,6 +105,54 @@ def seed_database():
         print("Sample restaurants:")
         for r in Restaurant.query.all():
             print(f"  - {r.name} ({len(r.menu_items)} items)")
+        seed_users()
+
+def seed_users():
+    """Create predictable local development users"""
+    users = [
+        {
+            'name': 'Customer Demo',
+            'email': 'customer@bitbite.test',
+            'password': 'password123',
+            'role': 'customer',
+            'phone': '+254700000001',
+        },
+        {
+            'name': 'Restaurant Demo',
+            'email': 'restaurant@bitbite.test',
+            'password': 'password123',
+            'role': 'restaurant',
+            'phone': '+254700000002',
+        },
+        {
+            'name': 'Admin Demo',
+            'email': 'admin@bitbite.test',
+            'password': 'password123',
+            'role': 'admin',
+            'phone': '+254700000003',
+        },
+    ]
+
+    created = 0
+    for user_data in users:
+        user = User.query.filter_by(email=user_data['email']).first()
+        if not user:
+            user = User(
+                name=user_data['name'],
+                email=user_data['email'],
+                phone=user_data['phone'],
+                role=user_data['role'],
+            )
+            db.session.add(user)
+            created += 1
+        user.set_password(user_data['password'])
+        user.role = user_data['role']
+
+    db.session.commit()
+    print(f"Seeded/updated {len(users)} demo users ({created} new)")
+    print("Demo sign-ins:")
+    for user_data in users:
+        print(f"  - {user_data['role']}: {user_data['email']} / {user_data['password']}")
 
 if __name__ == '__main__':
     seed_database()
